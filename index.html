@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniBuilder Cloud - Universal Document Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @media print {
+            body { background: white; color: black; }
+            .no-print { display: none !important; }
+            .print-full { width: 100% !important; max-width: 100% !important; padding: 0 !important; box-shadow: none !important; }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans flex flex-col">
+
+    <header class="bg-slate-950 border-b border-slate-800 py-3 px-6 shadow-xl no-print">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">🌐 OMNIBUILDER CORE</h1>
+                <p class="text-slate-400 text-xs mt-0.5">All-In-One Universal System: 12 Premium Layout Formats (Job Resumes & Shahi Bio-Datas)</p>
+            </div>
+            <button onclick="exportPremiumPDF()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold py-2 px-6 rounded-xl shadow-lg transition-all transform hover:scale-[1.01] cursor-pointer">
+                📥 Export Perfect Document (PDF)
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <div class="lg:col-span-5 bg-slate-950 p-5 rounded-2xl border border-slate-800 h-[84vh] overflow-y-auto space-y-5 no-print text-slate-300">
+            
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <label class="block text-xs font-bold uppercase tracking-widest text-amber-400">🎯 Choose Document Format & Style Theme</label>
+                <select id="megaTemplateSelector" class="w-full bg-slate-950 border border-slate-700 p-2.5 rounded-lg text-xs text-white font-bold cursor-pointer focus:ring-2 focus:ring-orange-500" onchange="renderActiveTemplate()">
+                    <optgroup label="💼 Professional Job Resumes (Formal)">
+                        <option value="modern-blue">1. Modern Blue Sidebar (Two-Column Corporate)</option>
+                        <option value="tech-emerald">2. Tech Emerald Grid (Clean IT Layout)</option>
+                        <option value="ats-clean">3. Minimal ATS Standard (Plain Black & White, No Photo)</option>
+                        <option value="executive-gold">4. Executive Luxury (Dark Gold Headings)</option>
+                        <option value="charcoal-bold">5. Charcoal Minimal (Bold Lines & Clean Borders)</option>
+                        <option value="compact-single">6. Elegant Soft Pastel (Creative Jobs Layout)</option>
+                    </optgroup>
+                    <optgroup label="❤️ Matrimonial Bio-Data (Traditional & Wedding)">
+                        <option value="shahi-crimson" selected>7. Royal Shahi Crimson (Maroon Borders & Mantras)</option>
+                        <option value="marigold-gold">8. Marigold Traditional (Auspicious Yellow-Orange)</option>
+                        <option value="royal-ivory">9. Royal Ivory Silk (Sophisticated Light Cream & Brown)</option>
+                        <option value="rose-premium">10. Rose Petal Pink (Modern Wedding Vibe)</option>
+                    </optgroup>
+                    <optgroup label="🎨 Creative & Informal Formats">
+                        <option value="dark-mode-tech">11. Dark Mode Cyber (Modern Black Tech Layout)</option>
+                        <option value="minimal-classic">12. Simple Old Traditional (Plain Job Format)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
+                <div class="flex justify-between items-center">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-amber-400">📷 Profile Photo Stream</label>
+                    <label class="inline-flex items-center cursor-pointer text-xs text-slate-400">
+                        <input type="checkbox" id="togglePhotoVisibility" checked class="sr-only peer" onchange="renderActiveTemplate()">
+                        <div class="relative w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-orange-500"></div>
+                        <span class="ms-2">Active</span>
+                    </label>
+                </div>
+                <input type="file" id="imageInputSrc" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700 cursor-pointer" onchange="encodePhotoCache(event)">
+            </div>
+
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <label class="block text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">⚙️ Show / Hide Form Data Sections</label>
+                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                    <label class="flex items-center gap-1.5"><input type="checkbox" id="chkSummary" checked onchange="toggleSectionDOM('secSummary', this)"> Summary / About</label>
+                    <label class="flex items-center gap-1.5"><input type="checkbox" id="chkEdu" checked onchange="toggleSectionDOM('secEdu', this)"> Education History</label>
+                    <label class="flex items-center gap-1.5"><input type="checkbox" id="chkSkills" checked onchange="toggleSectionDOM('secSkills', this)"> Technical Skills</label>
+                    <label class="flex items-center gap-1.5"><input type="checkbox" id="chkExp" checked onchange="toggleSectionDOM('secExp', this)"> Work Experience</label>
+                    <label class="flex items-center gap-1.5"><input type="checkbox" id="chkProj" checked onchange="toggleSectionDOM('secProj', this)"> Key Projects</label>
+                    <label class="flex items-center gap-1.5"><input type="checkbox" id="chkFamily" checked onchange="toggleSectionDOM('secFamily', this)"> Family (Matrimony)</label>
+                    <label class="flex items-center gap-1.5"><input type="checkbox" id="chkCert" checked onchange="toggleSectionDOM('secCert', this)"> Certifications</label>
+                </div>
+            </div>
+
+            <form id="engineInputForm" class="space-y-4 text-xs" oninput="compileAllDataLive()">
+                
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2.5">
+                    <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-slate-800 pb-1">1. Primary Information</h3>
+                    <input type="text" id="inName" placeholder="Full Name (e.g., MD IMRAN)" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                    <input type="text" id="inSub" placeholder="Role / Subtitle / Gotra (e.g., Data Analyst)" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="inPhone" placeholder="Mobile Number" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                        <input type="text" id="inEmail" placeholder="Email Address" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                    </div>
+                    <input type="text" id="inLoc" placeholder="Current Location / Full Address" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="inMeta1" placeholder="Extra 1 (e.g., DOB: 15/08/2001)" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                        <input type="text" id="inMeta2" placeholder="Extra 2 (e.g., Height: 5'10\")" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-1.5">
+                    <h3 class="font-bold text-white text-xs uppercase tracking-wider">2. Objective / Self-Profile Description</h3>
+                    <textarea id="inSummary" rows="2" placeholder="Describe career history or write a matrimonial self-intro..." class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white"></textarea>
+                </div>
+
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-white text-xs uppercase tracking-wider">3. Education Timeline</h3>
+                        <button type="button" onclick="addDynamicItemBlock('formEduList', 'edu')" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700 cursor-pointer">+ Add Edu</button>
+                    </div>
+                    <div id="formEduList" class="space-y-2"></div>
+                </div>
+
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                    <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-slate-800 pb-1">4. Core Technical Expertise Lines</h3>
+                    <input type="text" id="skLine1" placeholder="Line 1 (e.g., Python, SQL, JavaScript)" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                    <input type="text" id="skLine2" placeholder="Line 2 (e.g., Pandas, Scikit-Learn, Git)" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                    <input type="text" id="skLine3" placeholder="Line 3 (e.g., Machine Learning, Front-End Dev)" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                </div>
+
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-white text-xs uppercase tracking-wider">5. Work Experience / Internships</h3>
+                        <button type="button" onclick="addDynamicItemBlock('formExpList', 'exp')" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700 cursor-pointer">+ Add Exp</button>
+                    </div>
+                    <div id="formExpList" class="space-y-2"></div>
+                </div>
+
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-white text-xs uppercase tracking-wider">6. Strategic Technical Projects</h3>
+                        <button type="button" onclick="addDynamicItemBlock('formProjList', 'proj')" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700 cursor-pointer">+ Add Project</button>
+                    </div>
+                    <div id="formProjList" class="space-y-2"></div>
+                </div>
+
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-white text-xs uppercase tracking-wider">7. Family Relations (Matrimonial Spec)</h3>
+                        <button type="button" onclick="addDynamicItemBlock('formFamilyList', 'fam')" class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700 cursor-pointer">+ Add Family Member</button>
+                    </div>
+                    <div id="formFamilyList" class="space-y-2"></div>
+                </div>
+
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
+                    <h3 class="font-bold text-white text-xs uppercase tracking-wider border-b border-slate-800 pb-1">8. Certifications & Personal Details</h3>
+                    <textarea id="inCert" rows="2" placeholder="Certifications line-by-line..." class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white"></textarea>
+                    <input type="text" id="inHobbies" placeholder="Hobbies & Personal Extracurriculars" class="w-full p-2 bg-slate-950 border border-slate-700 rounded text-white">
+                </div>
+
+            </form>
+        </div>
+
+        <div class="lg:col-span-7 bg-white p-2 rounded-2xl shadow-2xl text-slate-900 mx-auto w-full max-w-[800px] min-h-[84vh] print-full flex flex-col justify-start">
+            
+            <div id="canvasRoot" class="p-4 transition-all duration-300 w-full min-h-full">
+                
+                <div id="marriageBanner" class="hidden text-center font-bold tracking-widest text-[15px] mb-2">
+                    ⚜️ || श्री गणेशाय नमः || ⚜️
+                </div>
+
+                <div id="structuralLayoutEngineGrid" class="flex flex-col gap-4">
+                    
+                    <div id="canvasHeader" class="pb-4 flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                        
+                        <div id="canvasPhotoWrapper" class="w-24 h-28 bg-slate-50 border border-slate-300 rounded overflow-hidden shrink-0 shadow-sm hidden">
+                            <img id="livePreviewImg" src="" class="w-full h-full object-cover hidden">
+                        </div>
+
+                        <div class="flex-1 w-full">
+                            <h1 id="lblOutName" class="text-2xl font-black uppercase tracking-wider">YOUR FULL NAME</h1>
+                            <p id="lblOutSub" class="text-xs font-bold italic text-slate-700">Designation Headline String</p>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-[11px] text-slate-600 mt-2 font-mono" id="canvasMetaGrid">
+                                <div><strong>Phone:</strong> <span id="lblOutPhone">—</span></div>
+                                <div><strong>Email:</strong> <span id="lblOutEmail">—</span></div>
+                                <div class="sm:col-span-2"><strong>Location:</strong> <span id="lblOutLoc">—</span></div>
+                                <div><strong id="metaTitle1">Detail 1:</strong> <span id="lblOutMeta1">—</span></div>
+                                <div><strong id="metaTitle2">Detail 2:</strong> <span id="lblOutMeta2">—</span></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div id="canvasCoreBody" class="space-y-4 text-[12.5px]">
+                        
+                        <div id="secSummary">
+                            <h2 class="text-xs font-bold uppercase tracking-wider border-b canvas-sec-title py-0.5">Professional Summary / Objective</h2>
+                            <p id="lblOutSummary" class="mt-1 text-justify text-slate-700 italic">Form details automatically process into this clean area matrix...</p>
+                        </div>
+
+                        <div id="secEdu">
+                            <h2 class="text-xs font-bold uppercase tracking-wider border-b canvas-sec-title py-0.5">Education History</h2>
+                            <div id="outEduContainer" class="mt-1 space-y-1.5"></div>
+                        </div>
+
+                        <div id="secSkills">
+                            <h2 class="text-xs font-bold uppercase tracking-wider border-b canvas-sec-title py-0.5">Key Core Skills</h2>
+                            <div class="mt-1 text-xs text-slate-700 space-y-0.5">
+                                <div><strong>Category Line 1:</strong> <span id="lblOutSk1">—</span></div>
+                                <div><strong>Category Line 2:</strong> <span id="lblOutSk2">—</span></div>
+                                <div><strong>Category Line 3:</strong> <span id="lblOutSk3">—</span></div>
+                            </div>
+                        </div>
+
+                        <div id="secExp">
+                            <h2 class="text-xs font-bold uppercase tracking-wider border-b canvas-sec-title py-0.5">Work History & Internships</h2>
+                            <div id="outExpContainer" class="mt-1 space-y-1.5"></div>
+                        </div>
+
+                        <div id="secProj">
+                            <h2 class="text-xs font-bold uppercase tracking-wider border-b canvas-sec-title py-0.5">Key Technical Projects</h2>
+                            <div id="outProjContainer" class="mt-1 space-y-1.5"></div>
+                        </div>
+
+                        <div id="secFamily">
+                            <h2 class="text-xs font-bold uppercase tracking-wider border-b canvas-sec-title py-0.5">Family Details & Kin Background</h2>
+                            <div id="outFamilyContainer" class="mt-1 space-y-1 text-slate-800 font-medium"></div>
+                        </div>
+
+                        <div id="secCert">
+                            <h2 class="text-xs font-bold uppercase tracking-wider border-b canvas-sec-title py-0.5">Certifications & Extracurriculars</h2>
+                            <ul id="outCertContainer" class="list-disc list-inside mt-1 text-slate-700 space-y-0.5"></ul>
+                            <div class="mt-1.5 text-xs"><strong>Hobbies:</strong> <span id="lblOutHobbies">—</span></div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let globalPhotoBase64Cache = "";
+
+        // Core Image Upload Data Processing
+        function encodePhotoCache(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                globalPhotoBase64Cache = e.target.result;
+                const img = document.getElementById('livePreviewImg');
+                img.src = globalPhotoBase64Cache;
+                img.classList.remove('hidden');
+                renderActiveTemplate();
+            }
+            if(file) reader.readAsDataURL(file);
+        }
+
+        // Section visibility switch state router
+        function toggleSectionDOM(sectionId, element) {
+            const dom = document.getElementById(sectionId);
+            if(element.checked) dom.classList.remove('hidden');
+            else dom.classList.add('hidden');
+            compileAllDataLive();
+        }
+
+        // Dynamic Component Item Block Generator Factory Tool
+        function addDynamicItemBlock(containerId, mode) {
+            const container = document.getElementById(containerId);
+            const blockId = 'blk_' + Math.random().toString(36).substr(2, 7);
+            const wrapper = document.createElement('div');
+            wrapper.className = "p-3 bg-slate-950 border border-slate-800 rounded relative space-y-1.5 text-xs text-white";
+            wrapper.id = blockId;
+
+            let injectHTML = "";
+            if(mode === 'edu') {
+                injectHTML = `
+                    <input type="text" placeholder="Degree/Course (e.g., B.Tech CSE)" class="w-full p-1 bg-slate-900 border border-slate-700 rounded e-title">
+                    <input type="text" placeholder="Institution / College Board" class="w-full p-1 bg-slate-900 border border-slate-700 rounded e-sub">
+                    <input type="text" placeholder="Duration Timeline / Grades Score" class="w-full p-1 bg-slate-900 border border-slate-700 rounded e-meta">
+                `;
+            } else if(mode === 'exp') {
+                injectHTML = `
+                    <input type="text" placeholder="Job Role Title / Position Designation" class="w-full p-1 bg-slate-900 border border-slate-700 rounded ex-title">
+                    <input type="text" placeholder="Company Name & City Location" class="w-full p-1 bg-slate-900 border border-slate-700 rounded ex-sub">
+                    <input type="text" placeholder="Duration Timeline (e.g., Jan 2025 - Present)" class="w-full p-1 bg-slate-900 border border-slate-700 rounded ex-meta">
+                    <textarea placeholder="Bullet details context descriptive points..." class="w-full p-1 bg-slate-900 border border-slate-700 rounded ex-desc" rows="1"></textarea>
+                `;
+            } else if(mode === 'proj') {
+                injectHTML = `
+                    <input type="text" placeholder="Project Title Header Name" class="w-full p-1 bg-slate-900 border border-slate-700 rounded p-title">
+                    <textarea placeholder="Core technical specs, summary features & toolsets details..." class="w-full p-1 bg-slate-900 border border-slate-700 rounded p-desc" rows="1"></textarea>
+                `;
+            } else if(mode === 'fam') {
+                injectHTML = `
+                    <input type="text" placeholder="Kin / Relation Type (e.g., Father Name)" class="w-full p-1 bg-slate-900 border border-slate-700 rounded f-title">
+                    <input type="text" placeholder="Full Name & Occupation Employment Details" class="w-full p-1 bg-slate-900 border border-slate-700 rounded f-desc">
+                `;
+            }
+
+            wrapper.innerHTML = `
+                <button type="button" onclick="document.getElementById('${blockId}').remove(); compileAllDataLive();" class="absolute top-1 right-1.5 text-red-400 hover:underline text-[9px]">✕</button>
+                ${injectHTML}
+            `;
+            container.appendChild(wrapper);
+            compileAllDataLive();
+        }
+
+        // 12 MASTER PREMIUM INTEGRATED CSS TEMPLATE ENGINE ROUTER LAB
+        function renderActiveTemplate() {
+            const chosen = document.getElementById('megaTemplateSelector').value;
+            const root = document.getElementById('canvasRoot');
+            const header = document.getElementById('canvasHeader');
+            const photoBox = document.getElementById('canvasPhotoWrapper');
+            const titles = document.querySelectorAll('.canvas-sec-title');
+            const banner = document.getElementById('marriageBanner');
+            const showPhotoCheckbox = document.getElementById('togglePhotoVisibility').checked;
+
+            // CLEAR AND RESET ENGINE HOOKS CLASS VALUES FOR STYLES ISOLATION
+            root.className = "p-5 transition-all duration-300 w-full min-h-full rounded-xl ";
+            header.className = "pb-4 flex flex-col md:flex-row items-center gap-4 text-center md:text-left border-b ";
+            banner.className = "hidden";
+            titles.forEach(t => t.className = "text-xs font-bold uppercase tracking-wider border-b py-0.5 ");
+            updateLabelStrings("Date of Birth:", "Identity Metadata:");
+
+            // Photo Layer Viewer Map Controls
+            if(globalPhotoBase64Cache && showPhotoCheckbox && chosen !== 'ats-clean') {
+                photoBox.classList.remove('hidden');
+            } else {
+                photoBox.classList.add('hidden');
+            }
+
+            // CSS RENDER COMBINATIONS DICTIONARY INJECTOR MATRIX
+            let nameCss = "text-slate-900 font-black";
+            let titlesCss = "text-slate-900 border-slate-800";
+
+            switch(chosen) {
+                case 'modern-blue':
+                    root.className += "bg-white text-slate-800 font-sans shadow-inner";
+                    header.className += "border-blue-900 bg-blue-50/50 p-4 rounded-xl border-l-8 border-blue-900";
+                    nameCss = "text-blue-950 font-black tracking-wide";
+                    titlesCss = "text-blue-900 border-blue-900/30 font-extrabold mt-2";
+                    break;
+
+                case 'tech-emerald':
+                    root.className += "bg-emerald-50/20 text-slate-800 font-mono";
+                    header.className += "border-emerald-700 bg-white p-3 rounded border-t-4 border-emerald-700";
+                    nameCss = "text-emerald-950 font-bold tracking-tight";
+                    titlesCss = "text-emerald-800 border-emerald-600/30 font-bold bg-emerald-50 px-1";
+                    break;
+
+                case 'ats-clean':
+                    root.className += "bg-white text-black font-serif p-2";
+                    header.className += "border-black text-center justify-center flex-col";
+                    nameCss = "text-black font-normal text-3xl tracking-normal font-serif";
+                    titlesCss = "text-black border-black font-bold tracking-widest mt-3 text-center";
+                    break;
+
+                case 'executive-gold':
+                    root.className += "bg-white text-slate-800 font-sans";
+                    header.className += "border-amber-700 border-b-2";
+                    nameCss = "text-slate-900 text-2xl font-black tracking-wider";
+                    titlesCss = "text-amber-800 border-amber-600 font-bold tracking-widest uppercase pb-1";
+                    break;
+
+                case 'charcoal-bold':
+                    root.className += "bg-white text-slate-900 font-sans p-6 border border-slate-300 shadow-sm";
+                    header.className += "border-slate-800 border-b-4 pb-2";
+                    nameCss = "text-slate-900 text-3xl font-extrabold tracking-tight";
+                    titlesCss = "text-slate-900 border-slate-800 font-black uppercase text-xs";
+                    break;
+
+                case 'compact-single':
+                    root.className += "bg-slate-50 text-slate-800 font-sans p-4";
+                    header.className += "border-purple-300 bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-xl";
+                    nameCss = "text-indigo-950 font-extrabold";
+                    titlesCss = "text-indigo-900 border-indigo-200 font-bold italic";
+                    break;
+
+                case 'shahi-crimson':
+                    root.className += "bg-[#fffef7] text-amber-950 font-serif border-4 border-double border-red-800 p-6 rounded-2xl shadow-xl";
+                    header.className += "border-red-800/60 flex-col text-center justify-center";
+                    banner.className = "text-center text-red-800 font-black tracking-widest text-[14px] mb-2 block";
+                    nameCss = "text-red-800 font-black text-3xl tracking-wide";
+                    titlesCss = "text-red-900 border-red-800/40 font-black bg-red-50/80 px-2 rounded text-center py-1 my-1";
+                    updateLabelStrings("जन्म तिथि (DOB):", "कद (Height):");
+                    break;
+
+                case 'marigold-gold':
+                    root.className += "bg-[#fffdf2] text-slate-900 font-serif border-4 border-amber-500 p-6 rounded-xl";
+                    header.className += "border-amber-600 flex-col text-center justify-center";
+                    banner.className = "text-center text-amber-700 font-bold tracking-widest text-xs mb-1 block";
+                    nameCss = "text-orange-700 font-black text-2xl";
+                    titlesCss = "text-amber-900 border-amber-500 font-bold bg-amber-100/70 text-center rounded py-0.5";
+                    updateLabelStrings("जन्म तिथि:", "गोत्र / विवरण:");
+                    break;
+
+                case 'royal-ivory':
+                    root.className += "bg-[#faf6eb] text-amber-950 font-serif p-6 border-2 border-amber-800/30 shadow-md";
+                    header.className += "border-amber-900 pb-2 text-center flex-col";
+                    nameCss = "text-amber-900 font-bold text-2xl tracking-widest";
+                    titlesCss = "text-amber-900 border-amber-800/50 font-bold uppercase pb-0.5 tracking-wider mt-2";
+                    updateLabelStrings("Birth Date:", "Height/Weight:");
+                    break;
+
+                case 'rose-premium':
+                    root.className += "bg-[#fff5f7] text-slate-800 font-sans p-5 border-2 border-rose-200 rounded-xl";
+                    header.className += "border-rose-400 bg-white p-4 rounded-xl text-center flex-col";
+                    nameCss = "text-rose-700 font-black text-2xl";
+                    titlesCss = "text-rose-800 border-rose-300 font-bold bg-rose-50 rounded px-2";
+                    updateLabelStrings("Birth Date:", "Physical Status:");
+                    break;
+
+                case 'dark-mode-tech':
+                    root.className += "bg-slate-950 text-slate-200 font-mono p-5 border border-slate-800";
+                    header.className += "border-slate-800 bg-slate-900 p-4 rounded-xl border-t-4 border-cyan-500";
+                    nameCss = "text-cyan-400 font-mono font-bold text-2xl";
+                    titlesCss = "text-slate-300 border-slate-800 font-bold text-cyan-500/80 bg-slate-900/60 px-2";
+                    break;
+
+                case 'minimal-classic':
+                    root.className += "bg-white text-slate-900 font-serif p-4";
+                    header.className += "border-gray-400";
+                    nameCss = "text-slate-900 font-bold text-2xl";
+                    titlesCss = "text-slate-800 border-gray-400 font-bold pb-0.5";
+                    break;
+            }
+
+            // Assign Compiled Target Element Properties To View Components Node Objects
+            document.getElementById('lblOutName').className = nameCss;
+            titles.forEach(t => t.className += ` ${titlesCss}`);
+            
+            compileAllDataLive();
+        }
+
+        function updateLabelStrings(m1, m2) {
+            document.getElementById('metaTitle1').innerText = m1;
+            document.getElementById('metaTitle2').innerText = m2;
+        }
+
+        // Real-Time Engine Sync Compilers Assembly
+        function compileAllDataLive() {
+            document.getElementById('lblOutName').innerText = document.getElementById('inName').value.toUpperCase() || "YOUR FULL NAME";
+            document.getElementById('lblOutSub').innerText = document.getElementById('inSub').value || "Headline Designation Spec";
+            document.getElementById('lblOutPhone').innerText = document.getElementById('inPhone').value || "—";
+            document.getElementById('lblOutEmail').innerText = document.getElementById('inEmail').value || "—";
+            document.getElementById('lblOutLoc').innerText = document.getElementById('inLoc').value || "—";
+            document.getElementById('lblOutMeta1').innerText = document.getElementById('inMeta1').value || "—";
+            document.getElementById('lblOutMeta2').innerText = document.getElementById('inMeta2').value || "—";
+            document.getElementById('lblOutSummary').innerText = document.getElementById('inSummary').value || "Details entered on the left panel display here instantly...";
+            
+            document.getElementById('lblOutSk1').innerText = document.getElementById('skLine1').value || "—";
+            document.getElementById('lblOutSk2').innerText = document.getElementById('skLine2').value || "—";
+            document.getElementById('lblOutSk3').innerText = document.getElementById('skLine3').value || "—";
+            document.getElementById('lblOutHobbies').innerText = document.getElementById('inHobbies').value || "—";
+
+            // Education Assembly Loop Array Maps
+            const eduOut = document.getElementById('outEduContainer'); eduOut.innerHTML = '';
+            document.querySelectorAll('#formEduList > div').forEach(b => {
+                const title = b.querySelector('.e-title').value;
+                const sub = b.querySelector('.e-sub').value;
+                const meta = b.querySelector('.e-meta').value;
+                if(title || sub) {
+                    const el = document.createElement('div');
+                    el.innerHTML = `
+                        <div class="flex justify-between font-bold text-slate-800"><span>${title || 'Course'}</span><span class="text-xs font-normal">${meta}</span></div>
+                        <div class="text-xs italic text-slate-600">${sub}</div>
+                    `;
+                    eduOut.appendChild(el);
+                }
+            });
+
+            // Experience Data Map
+            const expOut = document.getElementById('outExpContainer'); expOut.innerHTML = '';
+            document.querySelectorAll('#formExpList > div').forEach(b => {
+                const title = b.querySelector('.ex-title').value;
+                const sub = b.querySelector('.ex-sub').value;
+                const meta = b.querySelector('.ex-meta').value;
+                const desc = b.querySelector('.ex-desc').value;
+                if(title || sub) {
+                    const el = document.createElement('div');
+                    let bullets = desc ? `<p class="text-xs text-slate-600 mt-0.5 whitespace-pre-line">• ${desc}</p>` : '';
+                    el.innerHTML = `
+                        <div class="flex justify-between font-bold text-slate-800"><span>${title || 'Position'}</span><span class="text-xs font-normal">${meta}</span></div>
+                        <div class="text-xs italic text-slate-600">${sub}</div>
+                        ${bullets}
+                    `;
+                    expOut.appendChild(el);
+                }
+            });
+
+            // Key Technical Projects Data Map
+            const projOut = document.getElementById('outProjContainer'); projOut.innerHTML = '';
+            document.querySelectorAll('#formProjList > div').forEach(b => {
+                const title = b.querySelector('.p-title').value;
+                const desc = b.querySelector('.p-desc').value;
+                if(title) {
+                    const el = document.createElement('div');
+                    el.innerHTML = `<div class="font-bold text-slate-800">${title}</div><p class="text-xs text-slate-600">${desc}</p>`;
+                    projOut.appendChild(el);
+                }
+            });
+
+            // Kin Family Members Spec Data Map
+            const famOut = document.getElementById('outFamilyContainer'); famOut.innerHTML = '';
+            document.querySelectorAll('#formFamilyList > div').forEach(b => {
+                const title = b.querySelector('.f-title').value;
+                const desc = b.querySelector('.f-desc').value;
+                if(title || desc) {
+                    const el = document.createElement('div');
+                    el.innerHTML = `<strong>${title || 'Relation'}:</strong> <span class="text-slate-700">${desc || 'Details'}</span>`;
+                    famOut.appendChild(el);
+                }
+            });
+
+            // Tokenizer String Extractor lines for Certifications list array values
+            const certOut = document.getElementById('outCertContainer'); certOut.innerHTML = '';
+            const rawCerts = document.getElementById('inCert').value;
+            if(rawCerts.trim()) {
+                rawCerts.split('\n').forEach(line => {
+                    if(line.trim()) {
+                        const li = document.createElement('li'); li.innerText = line;
+                        certOut.appendChild(li);
+                    }
+                });
+            }
+        }
+
+        // Framework Life-cycle initializers
+        window.onload = function() {
+            addDynamicItemBlock('formEduList', 'edu');
+            addDynamicItemBlock('formExpList', 'exp');
+            addDynamicItemBlock('formProjList', 'proj');
+            addDynamicItemBlock('formFamilyList', 'fam');
+            renderActiveTemplate();
+        };
+
+        // Master High-Resolution File PDF Exporter Factory
+        function exportPremiumPDF() {
+            const element = document.getElementById('canvasRoot');
+            const fileNameTitle = document.getElementById('inName').value || 'OmniBuilder_System';
+            const opt = {
+                margin:       [0.3, 0.3, 0.3, 0.3],
+                filename:     `${fileNameTitle.replace(/\s+/g, '_')}_Document.pdf`,
+                image:        { type: 'jpeg', quality: 0.99 },
+                html2canvas:  { scale: 2.5, useCORS: true, logging: false },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
